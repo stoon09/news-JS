@@ -5,6 +5,7 @@
         "moduleResolution": "Bundler",
         "lib": ["ES2020", "DOM"],
         "rootDir": "./src",
+        "types": ["node"],
         "strict": true,
         "noImplicitAny": true,
         "esModuleInterop": true,
