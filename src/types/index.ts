@@ -62,3 +62,5 @@ export interface RequestParams {
     endpoint: Endpoint;
     options?: RequestOptions;
 }
+
+export type SourceItem = Pick<Source, 'id' | 'name'>;
