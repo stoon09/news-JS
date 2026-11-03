@@ -34,3 +34,31 @@ export interface EverythingResponse {
     totalResults: number;
     articles: Article[];
 }
+
+export enum Endpoint {
+    Sources = 'sources',
+    Everything = 'everything',
+}
+
+export enum HttpMethod {
+    Get = 'GET',
+}
+
+export enum HttpStatus {
+    Unauthorized = 401,
+    NotFound = 404,
+}
+
+export type ApiResponse = SourcesResponse | EverythingResponse;
+
+export type Callback<T> = (data: T) => void;
+
+export interface RequestOptions {
+    apiKey?: string;
+    sources?: string;
+}
+
+export interface RequestParams {
+    endpoint: Endpoint;
+    options?: RequestOptions;
+}

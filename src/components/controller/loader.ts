@@ -1,43 +1,53 @@
-class Loader {
-    constructor(baseLink, options) {
-        this.baseLink = baseLink;
-        this.options = options;
-    }
+import { ApiResponse, Callback, Endpoint, HttpMethod, HttpStatus, RequestOptions, RequestParams } from '../../types';
 
-    getResp(
-        { endpoint, options = {} },
-        callback = () => {
+class Loader {
+    constructor(
+        private readonly baseLink: string,
+        private readonly options: Readonly<RequestOptions>
+    ) {}
+
+    protected getResp<T extends ApiResponse>(
+        { endpoint, options = {} }: RequestParams,
+        callback: Callback<T> = (): void => {
             console.error('No callback for GET response');
         }
-    ) {
-        this.load('GET', endpoint, callback, options);
+    ): void {
+        this.load<T>(HttpMethod.Get, endpoint, callback, options);
     }
 
-    errorHandler(res) {
+    private errorHandler(res: Response): Response {
         if (!res.ok) {
-            if (res.status === 401 || res.status === 404)
+            if (res.status === HttpStatus.Unauthorized || res.status === HttpStatus.NotFound) {
                 console.log(`Sorry, but there is ${res.status} error: ${res.statusText}`);
+            }
             throw Error(res.statusText);
         }
 
         return res;
     }
 
-    makeUrl(options, endpoint) {
-        const urlOptions = { ...this.options, ...options };
-        let url = `${this.baseLink}${endpoint}?`;
+    private makeUrl(options: RequestOptions, endpoint: Endpoint): string {
+        const urlOptions: RequestOptions = { ...this.options, ...options };
+        const params = new URLSearchParams();
 
-        Object.keys(urlOptions).forEach((key) => {
-            url += `${key}=${urlOptions[key]}&`;
+        Object.entries(urlOptions).forEach(([key, value]) => {
+            if (value !== undefined) {
+                params.append(key, value);
+            }
         });
 
-        return url.slice(0, -1);
+        return `${this.baseLink}${endpoint}?${params.toString()}`;
     }
 
-    load(method, endpoint, callback, options = {}) {
+    private load<T extends ApiResponse>(
+        method: HttpMethod,
+        endpoint: Endpoint,
+        callback: Callback<T>,
+        options: RequestOptions = {}
+    ): void {
         fetch(this.makeUrl(options, endpoint), { method })
-            .then(this.errorHandler)
-            .then((res) => res.json())
+            .then((res) => this.errorHandler(res))
+            .then((res): Promise<T> => res.json())
             .then((data) => callback(data))
             .catch((err) => console.error(err));
     }
